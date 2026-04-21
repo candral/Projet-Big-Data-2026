@@ -8,4 +8,7 @@ df <- read.csv("data/Patrimoine_Arboré_data.csv")
 
 df_final <- df %>%
   clean_users() %>%
-  convert_coords()
+  convert_coords() %>%
+  clean_src_geo()
+
+write.csv(df_final, "data/Patrimoine_Arbore_Nettoye.csv", row.names = FALSE)
