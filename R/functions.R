@@ -49,6 +49,34 @@ clean_fk_stadedev <- function(data) {
     ))
 }
 
+# Nettoyage et Imputation de l'âge
+clean_age <- function(data) {
+  # 1. Nettoyage des valeurs aberrantes ou nulles
+  data <- data %>%
+    mutate(age_estim = ifelse(age_estim <= 0, NA, age_estim))
+  
+  # Calcul des médianes d'âge par stade de développement (fk_stadedev)
+  medians_age_stade <- data %>%
+    filter(!is.na(age_estim) & !is.na(fk_stadedev) & fk_stadedev != "Non renseigné") %>%
+    group_by(fk_stadedev) %>%
+    summarise(mediane_age = round(median(age_estim)), .groups = "drop")
+  
+  # Calcul de la médiane globale pour le reste
+  mediane_globale <- round(median(data$age_estim, na.rm = TRUE))
+  
+  # 4. Application de l'imputation
+  data <- data %>%
+    left_join(medians_age_stade, by = "fk_stadedev") %>%
+    mutate(age_estim = case_when(
+      !is.na(age_estim) ~ age_estim,               # On garde l'existant
+      !is.na(mediane_age) ~ mediane_age,           # Priorité au stade de dév (Jeune, Adulte, etc.)
+      TRUE ~ mediane_globale                       # Par défaut, médiane globale
+    )) %>%
+    select(-mediane_age)
+  
+  return(data)
+}
+
 # Imputation données numériques vides
 remplir_valeurs <- function(donnees, nom_colonne) {
   
