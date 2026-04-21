@@ -28,7 +28,6 @@ leaflet(df_clean) %>%
     popup = ~paste("<strong>Feuillage :</strong>", feuillage, "<br><strong>Age :</strong>", age_estim)
   )
 
-
 # Filtrage des arbres remarquables
 arbres_remarquables <- df_clean %>% 
   filter(remarquable == "Oui")
