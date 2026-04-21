@@ -1,0 +1,9 @@
+# --- R spécifique ---
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.Rapp.history
+*.Rstat
+*.Rout
+*.log
