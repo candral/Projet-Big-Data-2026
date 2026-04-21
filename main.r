@@ -11,6 +11,7 @@ df_final <- df %>%
   convert_coords() %>%
   clean_src_geo() %>%
   clean_fk_stadedev() %>%
+  clean_age() %>%
   mutate(
     haut_tronc = haut_tronc * 100,
     haut_tot = haut_tot * 100
