@@ -26,3 +26,13 @@ convert_coords <- function(data) {
   return(as.data.frame(data_sf) %>%
            select(-geometry))
 }
+
+# Nettoyage colonne src_geo
+clean_src_geo <- function(data) {
+  data %>%
+    mutate(src_geo = case_when(
+      is.na(src_geo) | src_geo == "" ~ "à renseigner",
+      str_detect(tolower(src_geo), "ortho") ~ "Orthophoto",
+      TRUE ~ src_geo
+    ))
+}
