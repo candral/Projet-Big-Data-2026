@@ -36,3 +36,15 @@ clean_src_geo <- function(data) {
       TRUE ~ src_geo
     ))
 }
+
+# Nettoyage colonne fk_stadedev
+clean_fk_stadedev <- function(data) {
+  data %>%
+    mutate(fk_stadedev = case_when(
+      tolower(fk_stadedev) == "jeune" ~ "Jeune",
+      tolower(fk_stadedev) == "adulte" ~ "Adulte",
+      tolower(fk_stadedev) %in% c("vieux", "senescent") ~ "Vieux/Sénescent",
+      is.na(fk_stadedev) | fk_stadedev == "" | fk_stadedev == " " ~ "Non renseigné",
+      TRUE ~ as.character(fk_stadedev)
+    ))
+}
