@@ -48,3 +48,28 @@ clean_fk_stadedev <- function(data) {
       TRUE ~ as.character(fk_stadedev)
     ))
 }
+
+# Imputation données numériques vides
+remplir_valeurs <- function(donnees, nom_colonne) {
+  
+  # Calcul de la moyenne globale (pour les arbres dont l'âge est inconnu)
+  moyenne_globale <- round(mean(donnees[[nom_colonne]], na.rm = TRUE), 2)
+  
+  # Calcul de la médiane par groupe d'âge
+  medians_par_age <- donnees %>%
+    filter(!is.na(age_estim) & !is.na(.data[[nom_colonne]]) & .data[[nom_colonne]] > 0) %>%
+    group_by(age_estim) %>%
+    summarise(mediane_groupe = round(median(.data[[nom_colonne]]), 2), .groups = "drop")
+  
+  # Fusion et remplacement
+  donnees <- donnees %>%
+    left_join(medians_par_age, by = "age_estim") %>%
+    mutate(!!nom_colonne := case_when(
+      !is.na(.data[[nom_colonne]]) & .data[[nom_colonne]] > 0 ~ .data[[nom_colonne]], # Garde l'original
+      !is.na(mediane_groupe) ~ mediane_groupe,                                       # Priorité Médiane/Âge
+      TRUE ~ moyenne_globale                                                         # Sinon Moyenne Globale
+    )) %>%
+    select(-mediane_groupe) # Supprime la colonne temporaire
+  
+  return(donnees)
+}
