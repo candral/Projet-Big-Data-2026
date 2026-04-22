@@ -7,9 +7,8 @@ source("R/functions.R")
 df <- read.csv("data/Patrimoine_Arboré_data.csv")
 
 df_final <- df %>%
-  clean_users() %>%
+  remove_columns() %>%
   convert_coords() %>%
-  clean_src_geo() %>%
   clean_fk_stadedev() %>%
   clean_age() %>%
   mutate(

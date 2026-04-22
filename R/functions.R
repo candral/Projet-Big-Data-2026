@@ -2,14 +2,12 @@ library(dplyr)
 library(stringr)
 library(sf)
 
-# Harmonisation utilisateurs
-clean_users <- function(data) {
+# Suppression des colonnes inutiles pour l'étude
+
+remove_columns <- function(data) {
+  columns_to_remove = c("OBJECTID", "created_date", "created_user", "src_geo", "id_arbre", "commentaire_environnement", "clc_nbr_diag", "last_edited_user", "last_edited_date", "nomfrancais", "nomlatin", "GlobalID", "CreationDate", "Creator", "EditDate", "Editor")
   data %>%
-    mutate(created_user = case_when(
-      created_user == "Edouard Cauchon" ~ "edouard.cauchon",
-      created_user == "Thibaut DELAIRE" ~ "thibaut.delaire",
-      TRUE ~ created_user
-    ))
+    select(-all_of(columns_to_remove))
 }
 
 # Conversion coordonnées
@@ -25,16 +23,6 @@ convert_coords <- function(data) {
   
   return(as.data.frame(data_sf) %>%
            select(-geometry))
-}
-
-# Nettoyage colonne src_geo
-clean_src_geo <- function(data) {
-  data %>%
-    mutate(src_geo = case_when(
-      is.na(src_geo) | src_geo == "" ~ "à renseigner",
-      str_detect(tolower(src_geo), "ortho") ~ "Orthophoto",
-      TRUE ~ src_geo
-    ))
 }
 
 # Nettoyage colonne fk_stadedev
