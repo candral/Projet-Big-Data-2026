@@ -1,15 +1,22 @@
 #install.packages("tidyverse")
 #install.packages("leaflet")
+#install.packages("mapview")
+#install.packages("webshot2")
+#install.packages("webshot")
+# en console : webshot::install_phantomjs()
 
 library(tidyverse)
 library(sf)
+library(leaflet)
+library(mapview)
+library(webshot2)
+library(webshot)
 
 df <- read.csv("data/Patrimoine_Arbore_Nettoye.csv", stringsAsFactors = FALSE)
 
 df_clean <- df %>% filter(!is.na(long) & !is.na(lat))
 
-# Conversion en objet spatial (SF)
-# On utilise le code EPSG 4326 pour les coordonnées GPS standards
+# Conversion en objet SF (nécessaire pour geom_sf)
 df_sf <- st_as_sf(df_clean, coords = c("long", "lat"), crs = 4326)
 
 # Calculer les statistiques
@@ -48,9 +55,19 @@ ggplot(data = df_sf_filtre) +
   ) +
   guides(color = guide_legend(override.aes = list(size = 3)))
 
-library(leaflet)
+ggsave(
+  "assets/carte_repartition_arbres.png", 
+  width = 10, 
+  height = 8, 
+  dpi = 300, 
+  bg = "white"
+)
 
-leaflet(df_clean) %>%
+library(leaflet)
+library(mapview)
+library(webshot2)
+
+all_trees <- leaflet(df_clean) %>%
   addTiles() %>%
   addCircleMarkers(
     lng = ~long, lat = ~lat,
@@ -58,15 +75,18 @@ leaflet(df_clean) %>%
     popup = ~paste("<strong>Feuillage :</strong>", feuillage, "<br><strong>Age :</strong>", age_estim)
   )
 
+mapshot(all_trees, file = "assets/carte_interactive_cluster.png", is_webshot2 = TRUE)
 
-# Filtrage des arbres remarquables
+# Filtrage des arbres remarquables 
+arbres_remarquables <- df_clean %>% filter(remarquable == "Oui")
+
 # Calcul de la répartition par quartier pour les arbres remarquables
 stats_remarquables <- arbres_remarquables %>%
   group_by(clc_quartier) %>%
   summarise(nb_remarquables = n()) %>%
   arrange(desc(nb_remarquables))
 
-leaflet(arbres_remarquables) %>%
+carte_remarquables <- leaflet(arbres_remarquables) %>%
   addProviderTiles(providers$CartoDB.Positron) %>%
   addCircleMarkers(
     lng = ~long, lat = ~lat,
@@ -74,3 +94,5 @@ leaflet(arbres_remarquables) %>%
     radius = 6,
     label = ~paste(clc_quartier)
   )
+
+mapshot(carte_remarquables, file = "assets/carte_arbres_remarquables.png", is_webshot2 = TRUE)
