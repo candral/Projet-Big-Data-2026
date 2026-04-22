@@ -9,6 +9,7 @@ df <- read.csv("data/Patrimoine_Arboré_data.csv")
 df_final <- df %>%
   remove_columns() %>%
   clean_areas() %>%
+  clean_pied() %>%
   convert_coords() %>%
   clean_fk_stadedev() %>%
   clean_age() %>%
