@@ -28,7 +28,7 @@ stats_quantitatives <- df %>%
 print(stats_quantitatives)
 
 # Histogramme de la distribution de la hauteur totale des arbres
-ggplot(df, aes(x = haut_tot)) +
+plot_hist <- ggplot(df, aes(x = haut_tot)) +
   geom_histogram(binwidth = 2, fill = "#2e7d32", color = "white") +
   stat_bin(binwidth = 2, geom = "text", aes(label = after_stat(count)), 
            vjust = -0.5, size = 3) +
@@ -37,6 +37,8 @@ ggplot(df, aes(x = haut_tot)) +
        y = "Nombre d'arbres") +
   theme_minimal()
 
+ggsave("assets/distribution_hauteur.png", plot = plot_hist, width = 10, height = 6, dpi = 300)
+
 # Camembert sur la Répartition du stade de développement (fk_stadedev)
 pie_data <- df %>%
   filter(!is.na(fk_stadedev)) %>%
@@ -44,7 +46,7 @@ pie_data <- df %>%
   mutate(prop = n / sum(n) * 100,
          label = paste0(round(prop, 1), "%")) # Crée le texte du label
 
-ggplot(pie_data, aes(x = "", y = n, fill = fk_stadedev)) +
+plot_pie <- ggplot(pie_data, aes(x = "", y = n, fill = fk_stadedev)) +
   geom_bar(stat = "identity", width = 1) +
   coord_polar("y", start = 0) +
   geom_text(aes(label = label), 
@@ -52,14 +54,16 @@ ggplot(pie_data, aes(x = "", y = n, fill = fk_stadedev)) +
             size = 4) +
   labs(title = "Répartition par stade de développement",
        fill = "Stade") +
-  theme_void()
+  theme_minimal()
+
+ggsave("assets/repartition_stade_developpement.png", plot = plot_pie, width = 8, height = 8, dpi = 300)
 
 # Diagramme en barres
 bar_data <- df %>%
   filter(!is.na(clc_quartier)) %>%
   count(clc_quartier)
 
-ggplot(bar_data, aes(x = reorder(clc_quartier, n), y = n, fill = clc_quartier)) +
+plot_bar <- ggplot(bar_data, aes(x = reorder(clc_quartier, n), y = n, fill = clc_quartier)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = n), 
             hjust = -0.2, # Décale le texte juste après la fin de la barre
@@ -70,3 +74,5 @@ ggplot(bar_data, aes(x = reorder(clc_quartier, n), y = n, fill = clc_quartier)) 
        y = "Nombre d'arbres") +
   theme_minimal() +
   theme(legend.position = "none")
+
+ggsave("assets/arbres_par_quartier.png", plot = plot_bar, width = 10, height = 8, dpi = 300)
