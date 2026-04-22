@@ -37,6 +37,16 @@ clean_areas <- function(data) {
     )
 }
 
+clean_pied <- function(data) {
+  data <- data %>%
+    mutate(
+      fk_pied = case_when(
+        str_to_lower(fk_pied) %in% c("bande de terre", "fosse arbre", "terre", "gazon") ~ "Pleine terre",
+        TRUE ~ fk_pied 
+      )
+    )
+}
+
 # Conversion coordonnées
 convert_coords <- function(data) {
   data_sf <- data %>%
