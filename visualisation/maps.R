@@ -40,3 +40,18 @@ leaflet(arbres_remarquables) %>%
     label = ~clc_quartier
   )
 
+
+
+
+# Filtrage des arbres remarquables
+arbres_remarquables <- df_clean %>% 
+  filter(remarquable == "Oui")
+
+# Carte Leaflet dédiée
+leaflet(arbres_remarquables) %>%
+  addTiles() %>%
+  addMarkers(
+    lng = ~long, lat = ~lat,
+    label = ~clc_quartier
+  )
+
