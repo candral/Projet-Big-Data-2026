@@ -8,9 +8,13 @@ df <- read.csv("data/Patrimoine_Arboré_data.csv")
 
 df_final <- df %>%
   remove_columns() %>%
+  clean_areas() %>%
   convert_coords() %>%
   clean_fk_stadedev() %>%
   clean_age() %>%
+  impute_precision() %>%
+  clean_remarquable() %>%
+  nettoyage_colonnes() %>%
   mutate(
     haut_tronc = haut_tronc * 100,
     haut_tot = haut_tot * 100
