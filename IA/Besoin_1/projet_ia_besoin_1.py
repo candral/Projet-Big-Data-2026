@@ -89,14 +89,14 @@ def generer_carte(k_choisi):
 
     liste_ordonnee = [noms_dynamiques[i] for i in range(k_choisi)]
 
-    fig = px.scatter_mapbox(
+    fig = px.scatter_map(
         df_prepare,
         lat="lat", lon="long",
         color="Nom_Categorie",
         size="haut_tot",
         hover_data=['haut_tot', 'tronc_diam'],
         category_orders={"Nom_Categorie": liste_ordonnee},
-        mapbox_style="carto-positron",
+        map_style="open-street-map",
         zoom=12, height=600
     )
     fig.show()
