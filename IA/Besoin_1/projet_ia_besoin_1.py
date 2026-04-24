@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-df = pd.read_csv("../Patrimoine_Arbore_Nettoye.csv")
+df = pd.read_csv("../../BIG_DATA/data/Patrimoine_Arbore_Nettoye.csv")
 
 def preparation_donnees(df):
     # Variables clés : haut_tot et tronc_diam pour l'apprentissage, lat et long pour positionner les arbres sur les cartes
