@@ -14,20 +14,26 @@ from sklearn.preprocessing import StandardScaler
 df = pd.read_csv("../../BIG_DATA/data/Patrimoine_Arbore_Nettoye.csv")
 
 def preparation_donnees(df):
-    # Variables clés : haut_tot et tronc_diam pour l'apprentissage, lat et long pour positionner les arbres sur les cartes
-    colonnes_utiles = ['haut_tot', 'tronc_diam', 'lat', 'long']
-    df_prepare = df[colonnes_utiles].copy().dropna()
+    colonnes_utiles = ['haut_tot', 'fk_stadedev', 'age_estim', 'tronc_diam', 'lat', 'long']
 
-    # La donnée est en cm dans le CSV, on passe en mètres pour la hauteur (plus parlant)
-    # Le tronc_diam est en cm
+    # Suppresion "Non renseigné"
+    df_prepare = df[df['fk_stadedev'] != 'Non renseigné'].copy()
+    df_prepare = df_prepare[colonnes_utiles].dropna()
+
+    mapping = {
+        "Jeune": 1,
+        "Adulte": 2,
+        "Vieux/Sénescent": 3
+    }
+    df_prepare['fk_stadedev'] = df_prepare['fk_stadedev'].map(mapping)
+
+    # Conversion hauteur cm -> m
     df_prepare['haut_tot'] = df_prepare['haut_tot'] / 100
 
+    # Scaling
     scaler = StandardScaler()
-    features = ['haut_tot', 'tronc_diam']
+    features = ['haut_tot', 'fk_stadedev', 'age_estim', 'tronc_diam']
     X_scaled = scaler.fit_transform(df_prepare[features])
-
-    # print("Moyenne après scaling:", X_scaled.mean(axis=0)) # On attend une valeur très faible (=0)
-    # print("Écart-type après scaling:", X_scaled.std(axis=0)) # On attend la valeur 1
 
     return df_prepare, X_scaled, scaler
 
@@ -168,7 +174,7 @@ def generer_carte(k_choisi):
         lat="lat", lon="long",
         color="Nom_Categorie",
         size="haut_tot",
-        hover_data=['haut_tot', 'tronc_diam'],
+        hover_data=['haut_tot', 'fk_stadedev', 'age_estim', 'tronc_diam'],
         category_orders={"Nom_Categorie": liste_ordonnee},
         map_style="open-street-map",
         zoom=12, height=600
@@ -188,7 +194,7 @@ import joblib
 from sklearn.cluster import KMeans
 
 try:
-    K_FINAL = int(input("Entrez le nombre final de catégories pour l'export (recommandé : 2 ou 3) : "))
+    K_FINAL = int(input("Entrez le nombre final de catégories pour l'export (recommandé : 2) : "))
 except ValueError:
     print("Entrée invalide, utilisation de la valeur par défaut : 2")
     K_FINAL = 2
@@ -216,23 +222,33 @@ mapping_noms = {int(cluster_id): noms_labels[i] for i, cluster_id in enumerate(o
 print(moyennes)
 
 # Sauvegarde
-joblib.dump(model_final, 'models/modele_arbres.pkl')
-joblib.dump(scaler, 'models/scaler_arbres.pkl')
-joblib.dump(mapping_noms, 'models/mapping_noms.pkl')
+joblib.dump(model_final, 'assets/modele_arbres.pkl')
+joblib.dump(scaler, 'assets/scaler_arbres.pkl')
+joblib.dump(mapping_noms, 'assets/mapping_noms.pkl')
 
 import joblib
 import pandas as pd
 
 def diagnostic_arbre():
-    model = joblib.load('models/modele_arbres.pkl')
-    scaler = joblib.load('models/scaler_arbres.pkl')
-    mapping = joblib.load('models/mapping_noms.pkl')
+    model = joblib.load('assets/modele_arbres.pkl')
+    scaler = joblib.load('assets/scaler_arbres.pkl')
+    mapping = joblib.load('assets/mapping_noms.pkl')
 
     print(f"Diagnostic : ({len(mapping)} catégories)")
-    h = float(input("Hauteur souhaitée en MÈTRES (ex: 15) : "))
-    d = float(input("Diamètre souhaité en CM (ex: 100) : "))
+    hauteur_totale = float(input("Hauteur totale en MÈTRES (ex: 15) : "))
 
-    entree = pd.DataFrame([[h, d]], columns=['haut_tot', 'tronc_diam'])
+    stade_table = """
+      Table de correspondance :
+      1 -> "Jeune"
+      2 -> "Adulte"
+      3 -> "Vieux/Sénescent"
+    """
+    print(stade_table)
+    fk_stadedev = int(input("Entrez le chiffre correspondant au stade : "))
+    age_estim = int(input("Age de l'arbre : "))
+    diametre_tronc = float(input("Diamètre souhaité en CM (ex: 100) : "))
+
+    entree = pd.DataFrame([[hauteur_totale, fk_stadedev, age_estim, diametre_tronc]], columns=['haut_tot', 'fk_stadedev', 'age_estim', 'tronc_diam'])
     scaled = scaler.transform(entree)
 
     res_id = int(model.predict(scaled)[0])
