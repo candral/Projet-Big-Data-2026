@@ -1,4 +1,4 @@
-# Projet-Big-Data-2026
+# Projet-BigData-IA-Web-2026
 
 Projet sur le patrimoine arboré de St-Quentin
 
@@ -56,8 +56,24 @@ Toutes les dépendances nécessaires sont listées dans `requirements.txt`:
 
 Une fois l'environnement virtuel activé :
 
+#### Via le script complet (.ipynb)
+
 ```bash
 jupyter notebook Projet_IA_Besoin_1.ipynb
+```
+
+#### Via les scripts python divisés (.py) :
+
+Pour choisir le nombre de clusters pour les cartes et l'entrainement du modèle :
+
+```bash
+python projet_ia_besoin_1.py
+```
+
+Pour diagnostiquer un arbre à partir de sa hauteur totale et du diamètre de son tronc selon le nombre de clusters spécifié :
+
+```bash
+python diagnostic.py
 ```
 
 ### Désactiver l'environnement virtuel

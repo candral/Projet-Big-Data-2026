@@ -103,15 +103,23 @@ def generer_carte(k_choisi):
     fig.show()
 
 try:
-    nb = int(input("Nombre de catégories ? : "))
-    generer_carte(nb)
+    nb = int(input("Nombre de catégories pour la carte ? (2 et 3 auto-générés) : "))
+    generer_carte(2)
+    generer_carte(3)
 except:
     print("Entrée invalide.")
+    generer_carte(2)
+    generer_carte(3)
 
 import joblib
 from sklearn.cluster import KMeans
 
-K_FINAL = 2
+try:
+    K_FINAL = int(input("Entrez le nombre final de catégories pour l'export (recommandé : 2 ou 3) : "))
+except ValueError:
+    print("Entrée invalide, utilisation de la valeur par défaut : 2")
+    K_FINAL = 2
+
 model_final = KMeans(n_clusters=K_FINAL, random_state=1, n_init=10)
 clusters = model_final.fit_predict(X_scaled)
 
@@ -138,25 +146,3 @@ print(moyennes)
 joblib.dump(model_final, 'modele_arbres.pkl')
 joblib.dump(scaler, 'scaler_arbres.pkl')
 joblib.dump(mapping_noms, 'mapping_noms.pkl')
-
-import joblib
-import pandas as pd
-
-def diagnostic_arbre():
-    model = joblib.load('modele_arbres.pkl')
-    scaler = joblib.load('scaler_arbres.pkl')
-    mapping = joblib.load('mapping_noms.pkl')
-
-    print(f"Diagnostic : ({len(mapping)} catégories)")
-    h = float(input("Hauteur souhaitée en MÈTRES (ex: 15) : "))
-    d = float(input("Diamètre souhaité en CM (ex: 100) : "))
-
-    entree = pd.DataFrame([[h, d]], columns=['haut_tot', 'tronc_diam'])
-    scaled = scaler.transform(entree)
-
-    res_id = int(model.predict(scaled)[0])
-    nom_final = mapping.get(res_id, "Inconnu")
-
-    print(f"\nCet arbre est classé : {nom_final}")
-
-diagnostic_arbre()
