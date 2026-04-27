@@ -62,18 +62,10 @@ Une fois l'environnement virtuel activé :
 jupyter notebook Projet_IA_Besoin_1.ipynb
 ```
 
-#### Via les scripts python divisés (.py) :
-
-Pour choisir le nombre de clusters pour les cartes et l'entrainement du modèle :
+#### Via le script python (.py) :
 
 ```bash
 python projet_ia_besoin_1.py
-```
-
-Pour diagnostiquer un arbre à partir de sa hauteur totale et du diamètre de son tronc selon le nombre de clusters spécifié :
-
-```bash
-python diagnostic.py
 ```
 
 ### Désactiver l'environnement virtuel

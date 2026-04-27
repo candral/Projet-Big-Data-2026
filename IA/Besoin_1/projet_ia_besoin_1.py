@@ -34,37 +34,110 @@ def preparation_donnees(df):
 df_prepare, X_scaled, scaler = preparation_donnees(df)
 
 import pandas as pd
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 
-def evaluer_modeles(X):
-    df_scores = []
-    # Le minimum est deux clusters et on ne calculera pas au dessus de 10
+def analyse_comparative_dbscan_kmeans(X):
+    results = []
+
+    # K-MEANS
     k_range = range(2, 11)
+    metrics_km = {
+        "inertia": [],
+        "silhouette": [],
+        "calinski": [],
+        "davies": []
+    }
 
     for k in k_range:
-        kmeans = KMeans(n_clusters=k, random_state=1, n_init=10)
-        labels = kmeans.fit_predict(X)
+        km = KMeans(n_clusters=k, random_state=1, n_init=10)
+        labels = km.fit_predict(X)
 
-        df_scores.append({
+        # Calcul des scores
+        sil = silhouette_score(X, labels)
+        cal = calinski_harabasz_score(X, labels)
+        dav = davies_bouldin_score(X, labels)
+
+        metrics_km["inertia"].append(km.inertia_)
+        metrics_km["silhouette"].append(sil)
+        metrics_km["calinski"].append(cal)
+        metrics_km["davies"].append(dav)
+
+        results.append({
+            "Algo": "K-Means",
+            "Paramètres": f"k={k}",
             "n_clusters": k,
-            "Silhouette (Higher is better)": silhouette_score(X, labels),
-            "Calinski-Harabasz (Higher is better)": calinski_harabasz_score(X, labels),
-            "Davies-Bouldin (Lower is better)": davies_bouldin_score(X, labels)
+            "Silhouette": sil,
+            "Calinski-Harabasz": cal,
+            "Davies-Bouldin": dav,
+            "Bruit (outliers)": 0
         })
 
-    # Conversion en DataFrame
-    df_res = pd.DataFrame(df_scores).set_index("n_clusters")
+    # Visualisation K-MEANS
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 
-    # Visualisation
-    axes = df_res.plot(subplots=True, layout=(1,3), figsize=(15,5), marker='o', sharex=True)
+    # Coude (Inertie)
+    axes[0, 0].plot(k_range, metrics_km["inertia"], 'bo-')
+    axes[0, 0].set_title('Méthode du Coude (Inertie)')
+    axes[0, 0].set_ylabel('Inertie')
+
+    # Silhouette
+    axes[0, 1].plot(k_range, metrics_km["silhouette"], 'ro-')
+    axes[0, 1].set_title('Score de Silhouette (Max est mieux)')
+    axes[0, 1].set_ylabel('Silhouette')
+
+    # Calinski-Harabasz
+    axes[1, 0].plot(k_range, metrics_km["calinski"], 'go-')
+    axes[1, 0].set_title('Indice Calinski-Harabasz (Max est mieux)')
+    axes[1, 0].set_ylabel('Score CH')
+
+    # Davies-Bouldin
+    axes[1, 1].plot(k_range, metrics_km["davies"], 'yo-')
+    axes[1, 1].set_title('Indice Davies-Bouldin (Min est mieux)')
+    axes[1, 1].set_ylabel('Score DB')
+
+    for ax in axes.flat:
+        ax.set_xlabel('Nombre de clusters (k)')
+        ax.grid(True)
 
     plt.tight_layout()
-    plt.savefig("data/evaluation_modeles.png")  # Sauvegarde de la figure
+    plt.savefig("assets/metriques_evaluation_kmeans.png")
     plt.show()
 
-evaluer_modeles(X_scaled)
+    # DBSCAN
+    eps_values = [0.3, 0.4, 0.5]
+    min_samples_values = [5, 10]
+
+    for eps in eps_values:
+        for ms in min_samples_values:
+            db = DBSCAN(eps=eps, min_samples=ms)
+            labels = db.fit_predict(X)
+            n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+
+            # On ne calcule les scores que si au moins 2 clusters existent (hors bruit)
+            if n_clusters > 1:
+                results.append({
+                    "Algo": "DBSCAN",
+                    "Paramètres": f"eps={eps}, min={ms}",
+                    "n_clusters": n_clusters,
+                    "Silhouette": silhouette_score(X, labels),
+                    "Calinski-Harabasz": calinski_harabasz_score(X, labels),
+                    "Davies-Bouldin": davies_bouldin_score(X, labels),
+                    "Bruit (outliers)": list(labels).count(-1)
+                })
+
+    df_res = pd.DataFrame(results)
+
+    # Tri par Silhouette
+    df_res = df_res.sort_values(by="Silhouette", ascending=False)
+
+    print(df_res.to_string(index=False))
+
+    return df_res
+
+analyse_comparative_dbscan_kmeans(X_scaled)
 
 import plotly.express as px
 
@@ -138,11 +211,33 @@ else:
     # Pour k > 3, on génère des étiquettes numériques ou textuelles automatiques
     noms_labels = [f"Taille {i}" for i in range(len(ordre_ids))]
 
-# Création du mapping sécurisée
+# Création du mapping sécurisé
 mapping_noms = {int(cluster_id): noms_labels[i] for i, cluster_id in enumerate(ordre_ids)}
 print(moyennes)
 
 # Sauvegarde
-joblib.dump(model_final, 'modele_arbres.pkl')
-joblib.dump(scaler, 'scaler_arbres.pkl')
-joblib.dump(mapping_noms, 'mapping_noms.pkl')
+joblib.dump(model_final, 'models/modele_arbres.pkl')
+joblib.dump(scaler, 'models/scaler_arbres.pkl')
+joblib.dump(mapping_noms, 'models/mapping_noms.pkl')
+
+import joblib
+import pandas as pd
+
+def diagnostic_arbre():
+    model = joblib.load('models/modele_arbres.pkl')
+    scaler = joblib.load('models/scaler_arbres.pkl')
+    mapping = joblib.load('models/mapping_noms.pkl')
+
+    print(f"Diagnostic : ({len(mapping)} catégories)")
+    h = float(input("Hauteur souhaitée en MÈTRES (ex: 15) : "))
+    d = float(input("Diamètre souhaité en CM (ex: 100) : "))
+
+    entree = pd.DataFrame([[h, d]], columns=['haut_tot', 'tronc_diam'])
+    scaled = scaler.transform(entree)
+
+    res_id = int(model.predict(scaled)[0])
+    nom_final = mapping.get(res_id, "Inconnu")
+
+    print(f"\nCet arbre est classé : {nom_final}")
+
+diagnostic_arbre()
