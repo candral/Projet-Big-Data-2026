@@ -61,6 +61,7 @@ def evaluer_modeles(X):
     axes = df_res.plot(subplots=True, layout=(1,3), figsize=(15,5), marker='o', sharex=True)
 
     plt.tight_layout()
+    plt.savefig("data/evaluation_modeles.png")  # Sauvegarde de la figure
     plt.show()
 
 evaluer_modeles(X_scaled)
