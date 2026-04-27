@@ -51,6 +51,7 @@ Toutes les dépendances nécessaires sont listées dans `requirements.txt`:
 - **joblib**: Sérialisation de modèles (sauvegarde/chargement de fichiers .pkl)
 - **jupyter**: Support des notebooks Jupyter
 - **ipython**: Interpréteur Python amélioré
+- **snseaborn**: Matrice de corrélation/Heatmap
 
 ### Exécuter le projet
 

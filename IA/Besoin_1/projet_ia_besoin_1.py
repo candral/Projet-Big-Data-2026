@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-df = pd.read_csv("../../BIG_DATA/data/Patrimoine_Arbore_Nettoye.csv")
+df = pd.read_csv("Patrimoine_Arbore_Nettoye.csv")
 
 def preparation_donnees(df):
     colonnes_utiles = ['haut_tot', 'fk_stadedev', 'age_estim', 'tronc_diam', 'lat', 'long']
@@ -38,6 +38,29 @@ def preparation_donnees(df):
     return df_prepare, X_scaled, scaler
 
 df_prepare, X_scaled, scaler = preparation_donnees(df)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def afficher_matrice_correlation_biometrique(df_prepare):
+    features = ['haut_tot', 'fk_stadedev', 'age_estim', 'tronc_diam']
+
+    corr_matrix = df_prepare[features].corr()
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(corr_matrix,
+                annot=True,
+                fmt=".2f",
+                cmap='coolwarm',
+                vmin=-1, vmax=1,
+                center=0)
+
+    plt.title("Corrélation des indicateurs de croissance de l'arbre")
+    plt.savefig("assets/matrice_correlation.png")
+    plt.show()
+
+# Utilisation
+afficher_matrice_correlation_biometrique(df_prepare)
 
 import pandas as pd
 import numpy as np
@@ -222,17 +245,17 @@ mapping_noms = {int(cluster_id): noms_labels[i] for i, cluster_id in enumerate(o
 print(moyennes)
 
 # Sauvegarde
-joblib.dump(model_final, 'assets/modele_arbres.pkl')
-joblib.dump(scaler, 'assets/scaler_arbres.pkl')
-joblib.dump(mapping_noms, 'assets/mapping_noms.pkl')
+joblib.dump(model_final, 'models/modele_arbres.pkl')
+joblib.dump(scaler, 'models/scaler_arbres.pkl')
+joblib.dump(mapping_noms, 'models/mapping_noms.pkl')
 
 import joblib
 import pandas as pd
 
 def diagnostic_arbre():
-    model = joblib.load('assets/modele_arbres.pkl')
-    scaler = joblib.load('assets/scaler_arbres.pkl')
-    mapping = joblib.load('assets/mapping_noms.pkl')
+    model = joblib.load('models/modele_arbres.pkl')
+    scaler = joblib.load('models/scaler_arbres.pkl')
+    mapping = joblib.load('models/mapping_noms.pkl')
 
     print(f"Diagnostic : ({len(mapping)} catégories)")
     hauteur_totale = float(input("Hauteur totale en MÈTRES (ex: 15) : "))
@@ -244,7 +267,7 @@ def diagnostic_arbre():
       3 -> "Vieux/Sénescent"
     """
     print(stade_table)
-    fk_stadedev = int(input("Entrez le chiffre correspondant au stade : "))
+    fk_stadedev = str(input("Entrez le chiffre correspondant au stade : "))
     age_estim = int(input("Age de l'arbre : "))
     diametre_tronc = float(input("Diamètre souhaité en CM (ex: 100) : "))
 
