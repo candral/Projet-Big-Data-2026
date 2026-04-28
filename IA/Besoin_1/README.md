@@ -69,6 +69,12 @@ jupyter notebook Projet_IA_Besoin_1.ipynb
 python projet_ia_besoin_1.py
 ```
 
+#### Exécuter la démo
+
+```bash
+python script.py
+```
+
 ### Désactiver l'environnement virtuel
 
 ```bash
